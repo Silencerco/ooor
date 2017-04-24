@@ -85,6 +85,7 @@ module Ooor
     # containing the attributes and the associations into the current object
     def load(attributes)
       self.class.reload_fields_definition(false)
+      attributes = attributes.to_unsafe_hash if attributes.is_a?(ActionController::Parameters)
       raise ArgumentError, "expected an attributes Hash, got #{attributes.inspect}" unless attributes.is_a?(Hash)
       @associations ||= {}
       @attributes ||= {}
