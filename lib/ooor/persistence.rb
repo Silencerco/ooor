@@ -85,6 +85,7 @@ module Ooor
     # containing the attributes and the associations into the current object
     def load(attributes)
       self.class.reload_fields_definition(false)
+      attributes = attributes.to_unsafe_hash if attributes.is_a?(ActionController::Parameters)
       raise ArgumentError, "expected an attributes Hash, got #{attributes.inspect}" unless attributes.is_a?(Hash)
       @associations ||= {}
       @attributes ||= {}
@@ -320,7 +321,7 @@ module Ooor
           defaults[k] = defaults[k][0][2]
         # m2m with records to create:
         elsif defaults[k].is_a?(Array) && defaults[k][0].is_a?(Array) && defaults[k][0][2].is_a?(Hash) # TODO make more robust
-          defaults[k] = defaults[k].map { |item| self.class.all_fields[k]['relation'].new(item[2]) }
+          defaults[k] = defaults[k].map { |item| self.class.all_fields[k]['relation'].is_a?(String) ? self.class.const_get(self.class.all_fields[k]['relation']).new(item[2]) : self.class.all_fields[k]['relation'].new(item[2])}
         # strange case with default product taxes on v9
         elsif defaults[k].is_a?(Array) && defaults[k][0] == [5] && defaults[k][1].is_a?(Array)
           defaults[k] = [defaults[k][1].last] # TODO may e more subtle

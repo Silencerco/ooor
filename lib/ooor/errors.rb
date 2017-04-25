@@ -33,6 +33,8 @@ module Ooor
         return SessionExpiredError.new(method, faultCode, faultString, *args)
       elsif faultCode =~ /UserError/
         return UserError.new(method, faultCode, faultString, *args)
+      elsif faultCode =~ /ValidationError/
+        return ValidationError.new(method, faultCode, faultString, *args)
       else
         return new(method, faultCode, faultString, *args)
       end
