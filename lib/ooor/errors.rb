@@ -81,7 +81,18 @@ module Ooor
 
 
   class UnknownOpenERPServerError < OpenERPServerError; end
-  class UnAuthorizedError < OpenERPServerError; end
+  class UnAuthorizedError < OpenERPServerError
+    def extract_error!(errors)
+      @faultCode.split("\n").each do |line|
+        extract_error_line!(errors, line) if line.index(': ')
+      end
+    end
+
+    def extract_error_line!(errors, line)
+      fields = line.split(": ")[0].split(' ').last.split(',')
+      fields.each { |field| errors << line }
+    end
+  end
   class TypeError < OpenERPServerError; end
   class ValueError < OpenERPServerError; end
   class InvalidSessionError < OpenERPServerError; end
