@@ -76,6 +76,7 @@ module Ooor
     define_service(:object, %w[execute exec_workflow])
 
     def object_service(service, obj, method, *args)
+      retries ||= 0
       @session.login_if_required()
       args = inject_session_context(service, method, *args)
       uid = @session.config[:user_id]
@@ -88,13 +89,26 @@ module Ooor
         json_conn = @session.get_client(:json, "#{@session.base_jsonrpc2_url}")
         json_conn.oe_service(@session.web_session, service, obj, method, *args)
       end
-      rescue InvalidSessionError
+      rescue InvalidSessionError => ise
         @session.config[:force_xml_rpc] = true #TODO set v6 version too
-        retry
-      rescue SessionExpiredError
+        retries += 1
+        if retries < 3
+          sleep 2
+          retry
+        else
+          raise ise
+        end
+      rescue SessionExpiredError => see
         @session.logger.debug "session for uid: #{uid} has expired, trying to login again"
         @session.login(@session.config[:database], @session.config[:username], @session.config[:password])
-        retry # TODO put a retry limit to avoid infinite login attempts
+
+        retries += 1
+        if retries < 3
+          sleep 2
+          retry
+        else
+          raise see
+        end
     end
 
     def inject_session_context(service, method, *args)
