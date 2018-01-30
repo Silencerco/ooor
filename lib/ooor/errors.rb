@@ -84,7 +84,7 @@ module Ooor
   class UnAuthorizedError < OpenERPServerError
     def extract_error!(errors)
       @faultCode.split("\n").each do |line|
-        extract_error_line!(errors, line) if line.index(': ')
+        extract_error_line!(errors, line) if line.index(/[Ee]rror: /)
       end
     end
 
